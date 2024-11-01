@@ -1,11 +1,10 @@
-# Código principal do Flask (app.py)
 import time
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_appbuilder import AppBuilder, SQLA
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder import ModelView
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, ProgrammingError
 import logging
 
 app = Flask(__name__)
@@ -31,6 +30,12 @@ for i in range(attempts):
     try:
         with app.app_context():
             db.create_all()  # Inicializa o banco de dados
+            # Verifica se a tabela foi criada com sucesso
+            table_names = db.engine.table_names()
+            if 'aluno' in table_names:
+                logger.info("Tabela 'aluno' criada com sucesso.")
+            else:
+                logger.warning("Tabela 'aluno' não foi criada.")
             # Criar um usuário administrador padrão
             if not appbuilder.sm.find_user(username='admin'):
                 appbuilder.sm.add_user(
@@ -50,6 +55,9 @@ for i in range(attempts):
         else:
             logger.error("Não foi possível conectar ao banco de dados após várias tentativas.")
             raise
+    except ProgrammingError as e:
+        logger.error(f"Erro de criação de tabela: {e}")
+        raise
 
 # Modelo de Aluno - Definição da tabela 'Aluno' no banco de dados
 class Aluno(db.Model):
