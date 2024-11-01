@@ -1,0 +1,41 @@
+# docker-compose.yml para orquestrar ambos os containers
+# Salve este arquivo como docker-compose.yml na raiz do projeto
+
+# docker-compose.yml
+version: '3.9'
+
+services:
+  mariadb:
+    build:
+      context: .
+      dockerfile: Dockerfile_mariadb
+    container_name: mariadb_container
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: school_db
+      MYSQL_USER: flask_user
+      MYSQL_PASSWORD: flask_password
+
+  flask_app:
+    build:
+      context: .
+      dockerfile: Dockerfile_flask
+    container_name: flask_app_container
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mariadb
+    environment:
+      FLASK_APP: app
+      FLASK_ENV: development
+      FLASK_DB_HOST: mariadb
+      FLASK_DB_USER: flask_user
+      FLASK_DB_PASSWORD: flask_password
+      FLASK_DB_NAME: school_db
+
+volumes:
+  db_data:
