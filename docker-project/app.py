@@ -21,9 +21,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 appbuilder = AppBuilder(app, db.session)
 
-with app.app_context():
-    db.create_all()
-
 # Configuração do log
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
