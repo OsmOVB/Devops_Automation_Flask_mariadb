@@ -9,36 +9,31 @@ pipeline {
             }
         }
         
-        stage('Build and Run Docker Containers') {
+        stage('Build Docker Images') {
             steps {
                 dir('docker-project') {
-                    // Comando para construir e iniciar os containers
-                    sh 'docker-compose up --build -d'
+                    // Comando para construir as imagens dos containers
+                    sh 'docker-compose build'
                 }
             }
         }
         
-        stage('Open Application') {
+        stage('Run Containers') {
             steps {
-                script {
-                    // Verificar se está em um ambiente Linux para abrir automaticamente
-                    if (isUnix()) {
-                        // Abre a aplicação no navegador (somente em Linux)
-                        sh 'xdg-open http://localhost:5000 || true'
-                    } else {
-                        echo "Por favor, abra http://localhost:5000 no navegador manualmente."
-                    }
+                dir('docker-project') {
+                    // Comando para iniciar os containers em segundo plano
+                    sh 'docker-compose up -d'
                 }
             }
         }
-    }
-    
-    post {
-        always {
-            echo 'Limpando containers...'
-            dir('docker-project') {
-                // Para e remove os containers após a execução
-                sh 'docker-compose down'
+        
+        stage('Check Application Status') {
+            steps {
+                script {
+                    // Verifica se a aplicação está acessível em localhost:5000
+                    echo "Aplicação Flask disponível em http://localhost:5000"
+                    // Aqui você pode adicionar um comando para verificar o status do container, se necessário
+                }
             }
         }
     }
