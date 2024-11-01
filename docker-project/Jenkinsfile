@@ -1,15 +1,36 @@
 pipeline {
     agent any
+    
     stages {
-        stage('Build') {
+        stage('Checkout Code') {
             steps {
-                echo 'Building..'
+                # Faz o checkout do código
+                git 'https://github.com/OsmOVB/Devops_Automation_Flask_mariadb.git'
             }
         }
-  
-        stage('Deploy') {
+        
+        stage('Build Docker Images') {
             steps {
-                echo 'Deploying....'
+                dir('docker-project') { # Navega até a pasta do projeto
+                    sh 'docker-compose build'
+                }
+            }
+        }
+        
+        stage('Run Containers') {
+            steps {
+                dir('docker-project') { # Navega até a pasta do projeto
+                    sh 'docker-compose up -d'
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo 'Limpando containers...'
+            dir('docker-project') {
+                sh 'docker-compose down'
             }
         }
     }
