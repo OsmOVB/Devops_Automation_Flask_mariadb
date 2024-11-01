@@ -4,23 +4,30 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                // Checkout da branch main
+                // Faz o checkout do código da branch main
                 git branch: 'main', url: 'https://github.com/OsmOVB/Devops_Automation_Flask_mariadb.git'
             }
         }
         
-        stage('Build Docker Images') {
+        stage('Build and Run Docker Containers') {
             steps {
                 dir('docker-project') {
-                    sh 'docker-compose build'
+                    // Comando para construir e iniciar os containers
+                    sh 'docker-compose up --build -d'
                 }
             }
         }
         
-        stage('Run Containers') {
+        stage('Open Application') {
             steps {
-                dir('docker-project') {
-                    sh 'docker-compose up -d'
+                script {
+                    // Verificar se está em um ambiente Linux para abrir automaticamente
+                    if (isUnix()) {
+                        // Abre a aplicação no navegador (somente em Linux)
+                        sh 'xdg-open http://localhost:5000 || true'
+                    } else {
+                        echo "Por favor, abra http://localhost:5000 no navegador manualmente."
+                    }
                 }
             }
         }
@@ -30,6 +37,7 @@ pipeline {
         always {
             echo 'Limpando containers...'
             dir('docker-project') {
+                // Para e remove os containers após a execução
                 sh 'docker-compose down'
             }
         }
