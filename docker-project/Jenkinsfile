@@ -4,14 +4,14 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                # Faz o checkout do código
+                //# Faz o checkout do código
                 git 'https://github.com/OsmOVB/Devops_Automation_Flask_mariadb.git'
             }
         }
         
         stage('Build Docker Images') {
             steps {
-                dir('docker-project') { # Navega até a pasta do projeto
+                dir('docker-project') {// Navega até a pasta do projeto
                     sh 'docker-compose build'
                 }
             }
@@ -19,7 +19,7 @@ pipeline {
         
         stage('Run Containers') {
             steps {
-                dir('docker-project') { # Navega até a pasta do projeto
+                dir('docker-project') { // Navega até a pasta do projeto
                     sh 'docker-compose up -d'
                 }
             }
