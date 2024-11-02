@@ -24,21 +24,30 @@ appbuilder = AppBuilder(app, db.session)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Tentar conectar até o MariaDB estar pronto
-attempts = 20
+# Tentativa de conectar até o MariaDB estar pronto e criar as tabelas
+attempts = 20  # Aumentado o número de tentativas para garantir mais tempo para o MariaDB inicializar
 for i in range(attempts):
     try:
         with app.app_context():
-            db.drop_all()  # Limpeza para garantir criação do banco
-            db.create_all()  # Inicializa o banco de dados
-            logger.info("Tabelas do banco de dados foram criadas ou já existem.")
+            # Criar todas as tabelas
+            db.create_all()
             
-            # Confirmação se a tabela Aluno existe
+            # Log das tabelas atualmente no banco de dados
+            tables = db.engine.table_names()
+            logger.info("Tabelas atuais no banco de dados: %s", tables)
+            
+              # Confirmação se a tabela Aluno existe
             inspector = db.inspect(db.engine)
             tables = inspector.get_table_names()
             logger.info(f"Tabelas atuais no banco de dados: {tables}")
 
-            # Criar um usuário administrador padrão
+            # Verificar se a tabela 'aluno' foi criada
+            if 'aluno' in tables:
+                logger.info("Tabela 'Aluno' criada com sucesso.")
+            else:
+                logger.warning("Tabela 'Aluno' não foi encontrada no banco de dados.")
+            
+            # Criar um usuário administrador padrão, se ainda não existir
             if not appbuilder.sm.find_user(username='admin'):
                 appbuilder.sm.add_user(
                     username='admin',
@@ -60,6 +69,7 @@ for i in range(attempts):
 
 # Modelo de Aluno - Definição da tabela 'Aluno' no banco de dados
 class Aluno(db.Model):
+    __tablename__ = 'aluno'  # Definindo o nome explícito da tabela
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(50), nullable=False)
     sobrenome = db.Column(db.String(50), nullable=False)
@@ -134,3 +144,4 @@ def criar_usuario():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+ 
