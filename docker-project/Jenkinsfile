@@ -27,12 +27,22 @@ pipeline {
             }
         }
         
+        stage('Application Logs') {
+            steps {
+                dir('docker-project') {
+                    // Exibe logs do container Flask
+                    sh 'docker logs flask_app_container || echo "Logs do Flask container não disponíveis."'
+                    // Exibe logs do container MariaDB
+                    sh 'docker logs mariadb_container || echo "Logs do MariaDB container não disponíveis."'
+                }
+            }
+        }
+        
         stage('Check Application Status') {
             steps {
                 script {
                     // Verifica se a aplicação está acessível em localhost:5000
                     echo "Aplicação Flask disponível em http://localhost:5000"
-                    // Aqui você pode adicionar um comando para verificar o status do container, se necessário
                 }
             }
         }
