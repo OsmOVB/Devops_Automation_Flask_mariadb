@@ -50,6 +50,8 @@ pipeline {
         stage('Check Application Status') {
             steps {
                 echo 'Aplicação Flask disponível em http://localhost:5000'
+                echo 'Aplicação Flask disponível em http://localhost:5000/login'
+                echo 'Aplicação Flask disponível em http://localhost:5000/alunos'
             }
         }
     }
