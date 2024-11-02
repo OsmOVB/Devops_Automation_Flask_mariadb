@@ -1,18 +1,30 @@
 pipeline {
     agent any
-    
+
     stages {
+        stage('Clean Docker Environment') {
+            steps {
+                script {
+                    // Parar todos os containers
+                    sh 'docker stop $(docker ps -aq) || true'
+                    // Remover todos os containers
+                    sh 'docker rm $(docker ps -aq) || true'
+                    // Remover todas as imagens
+                    sh 'docker rmi -f $(docker images -q) || true'
+                }
+            }
+        }
+        
         stage('Checkout Code') {
             steps {
-                // Faz o checkout do código da branch main
-                git branch: 'main', url: 'https://github.com/OsmOVB/Devops_Automation_Flask_mariadb.git'
+                // Suas etapas de checkout
+                checkout scm
             }
         }
         
         stage('Build Docker Images') {
             steps {
                 dir('docker-project') {
-                    // Comando para construir as imagens dos containers
                     sh 'docker-compose build'
                 }
             }
@@ -21,7 +33,6 @@ pipeline {
         stage('Run Containers') {
             steps {
                 dir('docker-project') {
-                    // Comando para iniciar os containers em segundo plano
                     sh 'docker-compose up -d'
                 }
             }
@@ -29,21 +40,16 @@ pipeline {
         
         stage('Application Logs') {
             steps {
-                dir('docker-project') {
-                    // Exibe os logs do container do Flask e MariaDB
-                    sh 'docker logs flask_app_container || echo "Flask container log retrieval failed"'
-                    sh 'docker logs mariadb_container || echo "MariaDB container log retrieval failed"'
+                script {
+                    sh 'docker logs flask_app_container'
+                    sh 'docker logs mariadb_container'
                 }
             }
         }
-
         
         stage('Check Application Status') {
             steps {
-                script {
-                    // Verifica se a aplicação está acessível em localhost:5000
-                    echo "Aplicação Flask disponível em http://localhost:5000"
-                }
+                echo 'Aplicação Flask disponível em http://localhost:5000'
             }
         }
     }
