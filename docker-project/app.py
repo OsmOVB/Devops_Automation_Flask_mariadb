@@ -101,6 +101,18 @@ appbuilder.add_view(
     category="Alunos",
 )
 
+# Função para verificar e criar a tabela 'aluno' explicitamente
+def verificar_criar_tabela_aluno():
+    # Criação da tabela se não existir
+    if not db.engine.has_table('aluno'):
+        logger.warning("Tabela 'aluno' não encontrada. Tentando criar tabela manualmente.")
+        db.create_all()
+        if db.engine.has_table('aluno'):
+            logger.info("Tabela 'aluno' criada com sucesso.")
+        else:
+            logger.error("Falha ao criar a tabela 'aluno'.")
+
+
 # Rota para listar todos os alunos - Método GET
 @app.route('/alunos', methods=['GET'])
 def listar_alunos():
