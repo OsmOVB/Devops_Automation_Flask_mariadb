@@ -25,11 +25,19 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Tentar conectar até o MariaDB estar pronto
-attempts = 5
+attempts = 20
 for i in range(attempts):
     try:
         with app.app_context():
+            db.drop_all()  # Limpeza para garantir criação do banco
             db.create_all()  # Inicializa o banco de dados
+            logger.info("Tabelas do banco de dados criadas com sucesso.")
+            
+            # Confirmação se a tabela Aluno existe
+            inspector = db.inspect(db.engine)
+            tables = inspector.get_table_names()
+            logger.info(f"Tabelas atuais no banco de dados: {tables}")
+
             # Criar um usuário administrador padrão
             if not appbuilder.sm.find_user(username='admin'):
                 appbuilder.sm.add_user(
@@ -40,7 +48,7 @@ for i in range(attempts):
                     role=appbuilder.sm.find_role(appbuilder.sm.auth_role_admin),
                     password='lil'
                 )
-        logger.info("Banco de dados inicializado com sucesso.")
+            logger.info("Banco de dados inicializado com sucesso.")
         break
     except OperationalError:
         if i < attempts - 1:
