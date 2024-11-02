@@ -1,16 +1,17 @@
+# Código principal do Flask (app.py)
 import time
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_appbuilder import AppBuilder, SQLA
 from flask_appbuilder.models.sqla.interface import SQLAInterface
 from flask_appbuilder import ModelView
-from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy.exc import OperationalError
 import logging
 
-app = Flask(__name__)
+app = Flask(_name_)
 
 # Configuração da chave secreta para sessões
-app.config['SECRET_KEY'] = 'minha_chave_secreta_super_secreta'  # Substitua por uma chave segura
+app.config['SECRET_KEY'] = 'minha_chave_secreta_super_secreta'
 
 # Configuração do banco de dados
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root_password@mariadb/school_db'
@@ -22,7 +23,7 @@ appbuilder = AppBuilder(app, db.session)
 
 # Configuração do log
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(_name_)
 
 # Tentar conectar até o MariaDB estar pronto
 attempts = 5
@@ -30,13 +31,6 @@ for i in range(attempts):
     try:
         with app.app_context():
             db.create_all()  # Inicializa o banco de dados
-            # Verifica se a tabela foi criada com sucesso
-            table_names = db.engine.table_names()
-            if 'aluno' in table_names:
-                logger.info("Tabela 'aluno' criada com sucesso.")
-            else:
-                logger.warning("Tabela 'aluno' não foi criada.")
-            # Criar um usuário administrador padrão
             if not appbuilder.sm.find_user(username='admin'):
                 appbuilder.sm.add_user(
                     username='admin',
@@ -51,28 +45,24 @@ for i in range(attempts):
     except OperationalError:
         if i < attempts - 1:
             logger.warning("Tentativa de conexão com o banco de dados falhou. Tentando novamente em 5 segundos...")
-            time.sleep(5)  # Aguarda 5 segundos antes de tentar novamente
+            time.sleep(5)
         else:
             logger.error("Não foi possível conectar ao banco de dados após várias tentativas.")
             raise
-    except ProgrammingError as e:
-        logger.error(f"Erro de criação de tabela: {e}")
-        raise
 
-# Modelo de Aluno - Definição da tabela 'Aluno' no banco de dados
+# Modelo de Aluno
 class Aluno(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(50), nullable=False)
-    sobrenome = db.Column(db.String(50), nullable=False)
-    turma = db.Column(db.String(50), nullable=False)
-    disciplinas = db.Column(db.String(200), nullable=False)
+    nome = db.Column(db.String(80), nullable=False)
+    sobrenome = db.Column(db.String(80), nullable=False)
+    turma = db.Column(db.String(20), nullable=False)
+    disciplinas = db.Column(db.JSON, nullable=False)
 
-# Visão do modelo Aluno para o painel administrativo
+# Visão do modelo Aluno
 class AlunoModelView(ModelView):
     datamodel = SQLAInterface(Aluno)
     list_columns = ['id', 'nome', 'sobrenome', 'turma', 'disciplinas']
 
-# Adicionar a visão do modelo ao AppBuilder
 appbuilder.add_view(
     AlunoModelView,
     "Lista de Alunos",
@@ -80,22 +70,36 @@ appbuilder.add_view(
     category="Alunos",
 )
 
-# Rota para listar todos os alunos - Método GET
+# Rota para listar todos os alunos
 @app.route('/alunos', methods=['GET'])
 def listar_alunos():
     alunos = Aluno.query.all()
     output = [{'id': aluno.id, 'nome': aluno.nome, 'sobrenome': aluno.sobrenome, 'turma': aluno.turma, 'disciplinas': aluno.disciplinas} for aluno in alunos]
     return jsonify(output)
 
-# Rota para adicionar um aluno - Método POST
+# Rota para adicionar um aluno
 @app.route('/alunos', methods=['POST'])
 def adicionar_aluno():
-    data = request.get_json()
-    novo_aluno = Aluno(nome=data['nome'], sobrenome=data['sobrenome'], turma=data['turma'], disciplinas=data['disciplinas'])
-    db.session.add(novo_aluno)
-    db.session.commit()
-    logger.info(f"Aluno {data['nome']} {data['sobrenome']} adicionado com sucesso!")
-    return jsonify({'message': 'Aluno adicionado com sucesso!'}), 201
+    try:
+        data = request.get_json()
+        # Verificação adicional para garantir que os dados estão corretos
+        if not all(key in data for key in ['nome', 'sobrenome', 'turma', 'disciplinas']):
+            return jsonify({'erro': 'Dados incompletos.'}), 400
+        
+        novo_aluno = Aluno(
+            nome=data['nome'], 
+            sobrenome=data['sobrenome'], 
+            turma=data['turma'], 
+            disciplinas=data['disciplinas']
+        )
+        db.session.add(novo_aluno)
+        db.session.commit()
+        logger.info(f"Aluno {data['nome']} {data['sobrenome']} adicionado com sucesso!")
+        return jsonify({'message': 'Aluno adicionado com sucesso!'}), 201
+    except Exception as e:
+        logger.error(f"Erro ao adicionar aluno: {str(e)}")
+        db.session.rollback()
+        return jsonify({'erro': 'Erro ao adicionar aluno. Tente novamente mais tarde.'}), 500
 
-if __name__ == '__main__':
+if _name_ == '_main_':
     app.run(host='0.0.0.0', port=5000, debug=True)
