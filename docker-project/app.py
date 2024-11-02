@@ -1,3 +1,4 @@
+# Código principal do Flask (app.py)
 import time
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -7,7 +8,7 @@ from flask_appbuilder import ModelView
 from sqlalchemy.exc import OperationalError
 import logging
 
-app = Flask(__name__)  # Corrigido para usar __name__
+app = Flask(_name_)
 
 # Configuração da chave secreta para sessões
 app.config['SECRET_KEY'] = 'minha_chave_secreta_super_secreta'
@@ -22,14 +23,14 @@ appbuilder = AppBuilder(app, db.session)
 
 # Configuração do log
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)  # Corrigido para usar __name__
+logger = logging.getLogger(_name_)
 
 # Tentar conectar até o MariaDB estar pronto
-attempts = 10
+attempts = 5
 for i in range(attempts):
     try:
         with app.app_context():
-            db.create_all()  # Criação das tabelas
+            db.create_all()  # Inicializa o banco de dados
             if not appbuilder.sm.find_user(username='admin'):
                 appbuilder.sm.add_user(
                     username='admin',
@@ -100,6 +101,5 @@ def adicionar_aluno():
         db.session.rollback()
         return jsonify({'erro': 'Erro ao adicionar aluno. Tente novamente mais tarde.'}), 500
 
-# Executar a aplicação
-if __name__ == '__main__':
+if _name_ == '_main_':
     app.run(host='0.0.0.0', port=5000, debug=True)
