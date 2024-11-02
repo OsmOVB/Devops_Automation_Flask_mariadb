@@ -24,6 +24,18 @@ appbuilder = AppBuilder(app, db.session)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Função para verificar e criar a tabela 'aluno' explicitamente
+def verificar_criar_tabela_aluno():
+    # Criação da tabela se não existir
+    if not db.engine.has_table('aluno'):
+        logger.warning("Tabela 'aluno' não encontrada. Tentando criar tabela manualmente.")
+        db.create_all()
+        if db.engine.has_table('aluno'):
+            logger.info("Tabela 'aluno' criada com sucesso.")
+        else:
+            logger.error("Falha ao criar a tabela 'aluno'.")
+
+
 # Tentativa de conectar até o MariaDB estar pronto e criar as tabelas
 attempts = 20  # Aumentado o número de tentativas para garantir mais tempo para o MariaDB inicializar
 for i in range(attempts):
