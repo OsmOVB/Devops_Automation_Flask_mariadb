@@ -31,7 +31,7 @@ for i in range(attempts):
         with app.app_context():
             db.drop_all()  # Limpeza para garantir criação do banco
             db.create_all()  # Inicializa o banco de dados
-            logger.info("Tabelas do banco de dados criadas com sucesso.")
+            logger.info("Tabelas do banco de dados foram criadas ou já existem.")
             
             # Confirmação se a tabela Aluno existe
             inspector = db.inspect(db.engine)
