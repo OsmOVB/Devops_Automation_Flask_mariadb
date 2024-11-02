@@ -30,13 +30,13 @@ pipeline {
         stage('Application Logs') {
             steps {
                 dir('docker-project') {
-                    // Exibe logs do container Flask
-                    sh 'docker logs flask_app_container || echo "Logs do Flask container não disponíveis."'
-                    // Exibe logs do container MariaDB
-                    sh 'docker logs mariadb_container || echo "Logs do MariaDB container não disponíveis."'
+                    // Exibe os logs do container do Flask e MariaDB
+                    sh 'docker logs flask_app_container || echo "Flask container log retrieval failed"'
+                    sh 'docker logs mariadb_container || echo "MariaDB container log retrieval failed"'
                 }
             }
         }
+
         
         stage('Check Application Status') {
             steps {
