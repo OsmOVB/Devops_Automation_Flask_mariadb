@@ -29,7 +29,7 @@ attempts = 10
 for i in range(attempts):
     try:
         with app.app_context():
-            db.create_all()  # Inicializa o banco de dados
+            db.create_all()  # Criação das tabelas
             if not appbuilder.sm.find_user(username='admin'):
                 appbuilder.sm.add_user(
                     username='admin',
@@ -101,5 +101,5 @@ def adicionar_aluno():
         return jsonify({'erro': 'Erro ao adicionar aluno. Tente novamente mais tarde.'}), 500
 
 # Executar a aplicação
-if __name__ == '__main__':  # Corrigido para __name__ e __main__
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
