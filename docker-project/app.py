@@ -8,7 +8,7 @@ from flask_appbuilder import ModelView
 from sqlalchemy.exc import OperationalError
 import logging
 
-app = Flask(_name_)
+app = Flask(__name__)
 
 # Configuração da chave secreta para sessões
 app.config['SECRET_KEY'] = 'minha_chave_secreta_super_secreta'
@@ -23,7 +23,7 @@ appbuilder = AppBuilder(app, db.session)
 
 # Configuração do log
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(_name_)
+logger = logging.getLogger(__name__)
 
 # Tentar conectar até o MariaDB estar pronto
 attempts = 5
@@ -101,5 +101,5 @@ def adicionar_aluno():
         db.session.rollback()
         return jsonify({'erro': 'Erro ao adicionar aluno. Tente novamente mais tarde.'}), 500
 
-if _name_ == '_main_':
+if __name__ == '_main_':
     app.run(host='0.0.0.0', port=5000, debug=True)
