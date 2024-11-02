@@ -36,9 +36,6 @@ services:
       FLASK_DB_USER: flask_user
       FLASK_DB_PASSWORD: flask_password
       FLASK_DB_NAME: school_db
-      # Script para aguardar a inicialização do MariaDB antes de iniciar o Flask
-    entrypoint: ["/bin/sh", "-c", "while ! mysqladmin ping -h mariadb --silent; do sleep 1; done && flask run --host=0.0.0.0"]
-
 
 volumes:
   db_data:
