@@ -13,7 +13,10 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'minha_chave_secreta_super_secreta'  # Substitua por uma chave segura
 
 # Configuração do banco de dados
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:root_password@mariadb/school_db'
+import os
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+pymysql://{os.getenv('FLASK_DB_USER')}:{os.getenv('FLASK_DB_PASSWORD')}@{os.getenv('FLASK_DB_HOST')}/{os.getenv('FLASK_DB_NAME')}"
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Inicializar o banco de dados e o AppBuilder
