@@ -2,26 +2,60 @@ pipeline {
     agent any
 
     stages {
-        stage('Build Containers') {
+        stage('Clean Docker Environment') {
             steps {
-                dir('docker-project') {  // Altere para o diretório correto onde está o docker-compose.yml
-                    script {
-                        // Step 1: Constrói os containers definidos no docker-compose.yml
-                        sh 'docker compose down -v'
-                        sh 'docker compose build'
-                    }
+                script {
+                    // Parar e remover todos os containers e imagens
+                    sh 'docker stop $(docker ps -aq) || true'
+                    sh 'docker rm $(docker ps -aq) || true'
+                    sh 'docker rmi -f $(docker images -q) || true'
                 }
             }
         }
 
-        stage('Start Application') {
+        stage('Checkout Code') {
             steps {
-                dir('docker-project') {  // Altere para o diretório correto onde está o docker-compose.yml
-                    script {
-                        // Step 2: Inicia os containers
-                        sh 'docker compose up -d'
-                    }
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                dir('docker-project') {
+                    sh 'docker-compose build'
                 }
+            }
+        }
+
+        stage('Run Containers') {
+            steps {
+                dir('docker-project') {
+                    sh 'docker-compose up -d'
+                }
+            }
+        }
+
+        stage('Application Logs') {
+            steps {
+                script {
+                    // Espera um curto período para garantir que os logs sejam capturados
+                    sleep(time: 10, unit: 'SECONDS')
+                    
+                    // Captura e exibe logs da aplicação Flask e do MariaDB
+                    echo '=== Flask Application Logs ==='
+                    sh 'docker logs flask_app_container || echo "Flask container logs not available"'
+                    
+                    echo '=== MariaDB Container Logs ==='
+                    sh 'docker logs mariadb_container || echo "MariaDB container logs not available"'
+                }
+            }
+        }
+
+        stage('Check Application Status') {
+            steps {
+                echo 'Aplicação Flask disponível em http://localhost:5000'
+                echo 'Aplicação Flask disponível em http://localhost:5000/login'
+                echo 'Aplicação Flask disponível em http://localhost:5000/alunos'
             }
         }
     }
