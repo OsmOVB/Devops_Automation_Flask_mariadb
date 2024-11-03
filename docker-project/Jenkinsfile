@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    triggers {
+    // Configura o polling para verificar o repositório Git a cada 5 minutos
+    pollSCM('H/2 * * * *')
+    }
+
     stages {
         stage('Clean Docker Environment') {
             steps {
