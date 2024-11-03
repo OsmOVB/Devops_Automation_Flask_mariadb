@@ -1,29 +1,25 @@
 pipeline {
     agent any
+
     stages {
-        stage('Declarative: Checkout SCM') {
-            steps {
-                checkout scm
-            }
-        }
         stage('Build Containers') {
             steps {
-                dir('docker-project') {
-                    script {
-                        sh 'docker compose down -v'
-                        sh 'docker compose up -d'
-                    }
+                script {
+                    // Step 1: Constrói os containers definidos no docker-compose.yml
+                    sh 'docker compose down -v'
+                    sh 'docker compose build'
                 }
             }
         }
+
         stage('Start Application') {
             steps {
-                dir('docker-project') {
-                    script {
-                        // Comandos adicionais para iniciar a aplicação, se necessário
-                    }
+                script {
+                    // Step 2: Inicia os containers
+                    sh 'docker compose up -d'
                 }
             }
         }
     }
+
 }
