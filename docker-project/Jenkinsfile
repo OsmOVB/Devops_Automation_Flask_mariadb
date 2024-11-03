@@ -2,40 +2,48 @@ pipeline {
     agent any
 
     triggers {
-    // Configura o polling para verificar o repositório Git a cada 5 minutos
-    pollSCM('H/2 * * * *')
+        // Verifica o repositório Git a cada 5 minutos
+        pollSCM('H/5 * * * *')
     }
 
     stages {
-        stage('Clean Docker Environment') {
+        stage('Git Checkout') {
             steps {
                 script {
-                    // Parar e remover todos os containers e imagens
-                    sh 'docker stop $(docker ps -aq) || true'
-                    sh 'docker rm $(docker ps -aq) || true'
-                    sh 'docker rmi -f $(docker images -q) || true'
+                    echo "=== Iniciando o checkout do repositório Git ==="
+                    // Realiza o checkout do repositório
+                    checkout scm
+                    echo "=== Checkout do Git concluído ==="
                 }
             }
         }
 
-        stage('Checkout Code') {
+        stage('Clean Docker Environment') {
             steps {
-                checkout scm
+                script {
+                    echo "=== Limpando o ambiente Docker ==="
+                    sh 'docker compose down -v'
+                    echo "=== Ambiente Docker limpo ==="
+                }
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Build Containers') {
             steps {
-                dir('docker-project') {
-                    sh 'docker-compose build'
+                script {
+                    echo "=== Iniciando a construção dos containers ==="
+                    sh 'docker compose build'
+                    echo "=== Containers construídos com sucesso ==="
                 }
             }
         }
 
         stage('Run Containers') {
             steps {
-                dir('docker-project') {
-                    sh 'docker-compose up -d'
+                script {
+                    echo "=== Iniciando os containers ==="
+                    sh 'docker compose up -d'
+                    echo "=== Containers iniciados ==="
                 }
             }
         }
@@ -43,24 +51,25 @@ pipeline {
         stage('Application Logs') {
             steps {
                 script {
-                    // Espera um curto período para garantir que os logs sejam capturados
-                    sleep(time: 10, unit: 'SECONDS')
-                    
-                    // Captura e exibe logs da aplicação Flask e do MariaDB
-                    echo '=== Flask Application Logs ==='
-                    sh 'docker logs flask_app_container || echo "Flask container logs not available"'
-                    
-                    echo '=== MariaDB Container Logs ==='
-                    sh 'docker logs mariadb_container || echo "MariaDB container logs not available"'
+                    echo "=== Aguardando 10 segundos para estabilizar o ambiente ==="
+                    sleep 10
+                    echo "=== Logs do Flask Application ==="
+                    sh 'docker logs flask_app_container'
+
+                    echo "=== Logs do MariaDB Container ==="
+                    sh 'docker logs mariadb_container'
                 }
             }
         }
 
         stage('Check Application Status') {
             steps {
-                echo 'Aplicação Flask disponível em http://localhost:5000'
-                echo 'Aplicação Flask disponível em http://localhost:5000/login'
-                echo 'Aplicação Flask disponível em http://localhost:5000/alunos'
+                script {
+                    echo "Verificando se a aplicação está acessível..."
+                    echo "Aplicação Flask disponível em http://localhost:5000"
+                    echo "Aplicação Flask disponível em http://localhost:5000/login"
+                    echo "Aplicação Flask disponível em http://localhost:5000/alunos"
+                }
             }
         }
     }
