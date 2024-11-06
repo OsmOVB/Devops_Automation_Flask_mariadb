@@ -25,11 +25,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Tentar conectar até o MariaDB estar pronto
-attempts = 5
+attempts = 15
 for i in range(attempts):
     try:
         with app.app_context():
-            db.create_all()  # Inicializa o banco de dados
+            db.create_all()
+            # Inicializa o banco de dados
             # Criar um usuário administrador padrão
             if not appbuilder.sm.find_user(username='admin'):
                 appbuilder.sm.add_user(

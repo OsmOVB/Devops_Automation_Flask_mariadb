@@ -12,5 +12,7 @@ COPY app.py /app/
 
 # Expõe a porta 5000 para o Flask
 EXPOSE 5000
+# Usa o entrypoint.sh para aguardar o MariaDB
+ENTRYPOINT ["/entrypoint.sh"]
 
 CMD ["flask", "run", "--host=0.0.0.0"]
