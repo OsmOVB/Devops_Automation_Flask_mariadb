@@ -1,11 +1,10 @@
 #!/bin/bash
 echo "Aguardando o banco de dados iniciar..."
 
-# Tentativa de conexão com o MariaDB até estar disponível
-while ! mysqladmin ping -h "mariadb" --silent; do
+while ! nc -z mariadb_container 3306; do
     echo "MariaDB não está disponível. Aguardando..."
     sleep 5
 done
 
-echo "MariaDB está disponível. Iniciando o Flask..."
-exec "$@"
+echo "MariaDB disponível. Iniciando a aplicação Flask."
+exec flask run --host=0.0.0.0 --port=5000
