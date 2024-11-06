@@ -4,18 +4,18 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Instala o Netcat para verificar a disponibilidade do banco de dados
-RUN apt-get update && apt-get install -y netcat && apt-get clean
+# Instala o Netcat (OpenBSD) para verificar a disponibilidade do banco de dados
+RUN apt-get update && apt-get install -y netcat-openbsd && apt-get clean
 
 # Instalar dependências
 COPY requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar o código da aplicação
+# Copiar o código da aplicação e entrypoint
 COPY app.py /app/
 COPY entrypoint.sh /app/entrypoint.sh
 
-# Garantir permissões de execução
+# Garantir permissões de execução para o entrypoint
 RUN chmod +x /app/entrypoint.sh
 
 # Definir o entrypoint
