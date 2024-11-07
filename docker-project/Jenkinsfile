@@ -71,16 +71,17 @@ pipeline {
             }
         }
 
-        stage('Check Application Status') {
-            steps {
-                script {
-                    echo "Verificando se a aplicação está acessível..."
-                    echo "Aplicação Flask disponível em http://localhost:5000"
-                    echo "Aplicação Flask disponível em http://localhost:5000/login"
-                    echo "Aplicação Flask disponível em http://localhost:5000/alunos"
-                }
-            }
+stage('Check Application Status') {
+    steps {
+        script {
+            echo "Verificando se a aplicação está acessível..."
+            sh 'curl -f http://localhost:5000/ || echo "Falha ao acessar a aplicação Flask."'
+            sh 'curl -f http://localhost:5000/login || echo "Falha ao acessar o endpoint /login."'
+            sh 'curl -f http://localhost:5000/alunos || echo "Falha ao acessar o endpoint /alunos."'
         }
+    }
+}
+
     }
 
     post {
