@@ -48,7 +48,7 @@ services:
     image: grafana/grafana
     container_name: grafana_container
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       - prometheus
     volumes:
