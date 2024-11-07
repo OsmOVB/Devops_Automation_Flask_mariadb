@@ -11,7 +11,6 @@ pipeline {
             steps {
                 script {
                     echo "=== Iniciando o checkout do repositório Git ==="
-                    // Realiza o checkout do repositório
                     checkout scm
                     echo "=== Checkout do Git concluído ==="
                 }
@@ -22,7 +21,7 @@ pipeline {
             steps {
                 script {
                     echo "=== Limpando o ambiente Docker ==="
-                    sh 'docker-compose -f docker-project/docker-compose.yml down -v'
+                    sh 'docker-compose down -v || true'
                     echo "=== Ambiente Docker limpo ==="
                 }
             }
@@ -32,7 +31,7 @@ pipeline {
             steps {
                 script {
                     echo "=== Iniciando a construção dos containers ==="
-                    sh 'docker-compose -f docker-project/docker-compose.yml build'
+                    sh 'docker-compose build'
                     echo "=== Containers construídos com sucesso ==="
                 }
             }
@@ -42,7 +41,7 @@ pipeline {
             steps {
                 script {
                     echo "=== Iniciando os containers ==="
-                    sh 'docker-compose -f docker-project/docker-compose.yml up -d'
+                    sh 'docker-compose up -d'
                     echo "=== Containers iniciados ==="
                 }
             }
@@ -54,10 +53,31 @@ pipeline {
                     echo "=== Aguardando 10 segundos para estabilizar o ambiente ==="
                     sleep 10
                     echo "=== Logs do Flask Application ==="
-                    sh 'docker logs flask_app_container'
+                    sh 'docker logs --tail 50 flask_app_container'
 
                     echo "=== Logs do MariaDB Container ==="
-                    sh 'docker logs mariadb_container'
+                    sh 'docker logs --tail 50 mariadb_container'
+                }
+            }
+        }
+
+        stage('Prometheus & Grafana Status') {
+            steps {
+                script {
+                    echo "=== Verificando Prometheus e Grafana ==="
+                    def prometheusResponse = sh(script: 'curl -s -o /dev/null -w "%{http_code}" http://localhost:9090', returnStdout: true).trim()
+                    if (prometheusResponse == "200") {
+                        echo "Prometheus disponível em http://localhost:9090"
+                    } else {
+                        error "Prometheus não está acessível. Código de resposta HTTP: ${prometheusResponse}"
+                    }
+
+                    def grafanaResponse = sh(script: 'curl -s -o /dev/null -w "%{http_code}" http://localhost:3000', returnStdout: true).trim()
+                    if (grafanaResponse == "200") {
+                        echo "Grafana disponível em http://localhost:3000"
+                    } else {
+                        error "Grafana não está acessível. Código de resposta HTTP: ${grafanaResponse}"
+                    }
                 }
             }
         }
@@ -65,12 +85,28 @@ pipeline {
         stage('Check Application Status') {
             steps {
                 script {
-                    echo "Verificando se a aplicação está acessível..."
-                    echo "Aplicação Flask disponível em http://localhost:5000"
-                    echo "Aplicação Flask disponível em http://localhost:5000/login"
-                    echo "Aplicação Flask disponível em http://localhost:5000/alunos"
+                    echo "=== Verificando se a aplicação está acessível ==="
+                    def flaskResponse = sh(script: 'curl -s -o /dev/null -w "%{http_code}" http://localhost:5000', returnStdout: true).trim()
+                    if (flaskResponse == "200") {
+                        echo "Aplicação Flask disponível em http://localhost:5000"
+                    } else {
+                        error "A aplicação Flask não está acessível no endpoint http://localhost:5000. Código de resposta HTTP: ${flaskResponse}"
+                    }
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            echo "=== Finalizando o pipeline e limpando contêineres ==="
+            sh 'docker-compose down -v'
+        }
+        success {
+            echo "Pipeline concluído com sucesso."
+        }
+        failure {
+            echo "Pipeline falhou. Verifique os logs para mais detalhes."
         }
     }
 }

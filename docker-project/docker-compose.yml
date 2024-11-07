@@ -1,4 +1,5 @@
-# docker-compose.yml para orquestrar ambos os containers
+version: '3.8'
+
 services:
   mariadb:
     build:
@@ -32,5 +33,35 @@ services:
       FLASK_DB_PASSWORD: flask_password
       FLASK_DB_NAME: school_db
 
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus_container
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - mariadb
+      - flask_app
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana_container
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+  mysqld_exporter:
+    image: prom/mysqld-exporter
+    container_name: mysqld_exporter_container
+    environment:
+      DATA_SOURCE_NAME: "flask_user:flask_password@(mariadb:3306)/school_db"
+    depends_on:
+      - mariadb
+
 volumes:
   db_data:
+  grafana_data:
