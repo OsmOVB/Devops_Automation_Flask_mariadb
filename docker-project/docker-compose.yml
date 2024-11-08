@@ -16,9 +16,10 @@ services:
       MYSQL_USER: flask_user
       MYSQL_PASSWORD: flask_password
     healthcheck:
-    test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-    interval: 10s
-    retries: 5
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   flask_app:
     build:
