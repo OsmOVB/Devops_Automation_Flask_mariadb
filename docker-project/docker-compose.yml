@@ -29,7 +29,8 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - mariadb
+      mariadb:
+        condition: service_healthy
     environment:
       FLASK_APP: app
       FLASK_ENV: development
@@ -37,6 +38,7 @@ services:
       FLASK_DB_USER: flask_user
       FLASK_DB_PASSWORD: flask_password
       FLASK_DB_NAME: school_db
+
 
   prometheus:
     image: prom/prometheus
